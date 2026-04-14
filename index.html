@@ -1,34 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+    #download-btn {
+      position: fixed; top: 10px; right: 10px; padding: 10px 20px;
+      background: #003366; color: white; border: none; border-radius: 5px;
+      cursor: pointer; z-index: 1000; display: none;
+    }
+    .document-container { background: white; margin: 20px auto; padding: 20px; width: fit-content; min-width: 800px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    @media print { #download-btn { display: none; } }
+  </style>
 </head>
 <body>
-  <button id="btn-print" onclick="generarPDF()" style="display:none; position:fixed; top:10px; right:10px; z-index:1000;">DESCARGAR PDF</button>
-  <div id="area-impresion">
-    <div id="contenido-dinamico">Esperando datos de Glide...</div>
+  <button id="download-btn">Descargar PDF</button>
+  <div id="canvas" class="document-container">
+    <p id="status">Esperando datos de la app...</p>
   </div>
 
   <script>
-    // Escuchar el mensaje que envía Glide
-    window.addEventListener('message', function(event) {
-      const { html, bg } = event.data;
-      if (html) {
-        document.getElementById('contenido-dinamico').innerHTML = html;
-        document.getElementById('btn-print').style.display = 'block';
+    // Escuchar el mensaje enviado desde Glide
+    window.addEventListener("message", (event) => {
+      // Si recibimos HTML, lo insertamos
+      if (event.data && event.data.html) {
+        document.getElementById('canvas').innerHTML = event.data.html;
+        document.getElementById('download-btn').style.display = 'block';
+        
+        // Si viene un fondo, lo aplicamos
+        if (event.data.bg) {
+          document.body.style.backgroundImage = `url('${event.data.bg}')`;
+          document.body.style.backgroundSize = 'cover';
+        }
       }
-      if (bg) {
-        document.body.style.backgroundImage = `url('${bg}')`;
-        document.body.style.backgroundSize = 'cover';
-        document.body.style.backgroundAttachment = 'fixed';
-      }
-    });
+    }, false);
 
-    function generarPDF() {
-      const element = document.getElementById('area-impresion');
-      html2pdf().set({ margin: 5, filename: 'Reporte.pdf', html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4' } }).from(element).save();
-    }
+    // Lógica de descarga
+    document.getElementById('download-btn').addEventListener('click', () => {
+      const element = document.getElementById('canvas');
+      html2pdf().set({
+        margin: 10,
+        filename: 'reporte.pdf',
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(element).save();
+    });
   </script>
 </body>
 </html>
