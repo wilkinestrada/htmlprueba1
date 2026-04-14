@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+  <style>
+    @page { margin: 10mm; }
+    body { font-family: Arial, sans-serif; font-size: 13px; margin: 0; padding: 0; min-height: 100vh; }
+    .page { 
+      margin: 20px auto; padding: 20px; border-radius: 10px; 
+      background-color: rgba(255, 255, 255, 0.96); 
+      box-shadow: 0 0 10px rgba(0,0,0,0.15); width: fit-content; 
+    }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    table, th, td { border: 1px solid #000; padding: 4px; }
+    .seccion-titulo { background: #e0e0e0; font-weight: bold; }
+    #btn-print {
+      position: fixed; top: 10px; right: 10px; padding: 10px 20px;
+      background: #003366; color: white; border: none; border-radius: 5px;
+      cursor: pointer; z-index: 1000; font-weight: bold;
+    }
+    @media print { #btn-print { display: none; } }
+  </style>
+</head>
+<body>
+  <button id="btn-print" onclick="generarPDF()">DESCARGAR PDF</button>
+  <div class="page" id="area-impresion">
+    <div id="contenido-dinamico">Cargando datos...</div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    
+    // Aplicar FONDO DINÁMICO desde Glide
+    const imagenFondo = params.get('bg');
+    if (imagenFondo) {
+      document.body.style.backgroundImage = `url('${imagenFondo}')`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundAttachment = 'fixed';
+    }
+
+    // Cargar CONTENIDO desde Glide
+    const datosBase64 = params.get('data');
+    if (datosBase64) {
+      try {
+        const htmlDecodificado = decodeURIComponent(escape(atob(datosBase64)));
+        document.getElementById('contenido-dinamico').innerHTML = htmlDecodificado;
+      } catch (e) {
+        document.getElementById('contenido-dinamico').innerHTML = "Error al decodificar datos.";
+      }
+    }
+
+    function generarPDF() {
+      const element = document.getElementById('area-impresion');
+      html2pdf().set({
+        margin: 5,
+        filename: 'Reporte.pdf',
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(element).save();
+    }
+  </script>
+</body>
+</html>
