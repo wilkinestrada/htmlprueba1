@@ -1,51 +1,29 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
-  <style>
-    body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
-    #download-btn {
-      position: fixed; top: 10px; right: 10px; padding: 10px 20px;
-      background: #003366; color: white; border: none; border-radius: 5px;
-      cursor: pointer; z-index: 1000; display: none;
-    }
-    .document-container { background: white; margin: 20px auto; padding: 20px; width: fit-content; min-width: 800px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    @media print { #download-btn { display: none; } }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificado</title>
+<style>
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { margin: 0; }
+  body { margin: 0; }
+</style>
+<script>
+function getParam(name) {
+  var m = new RegExp('[?&]' + name + '=([^&#]*)').exec(location.search);
+  return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+}
+function load() {
+  var html = getParam('PDF');
+  if (html) {
+    document.getElementById('content').innerHTML = html;
+    setTimeout(function () { window.print(); }, 800);
+  }
+}
+</script>
 </head>
-<body>
-  <button id="download-btn">Descargar PDF</button>
-  <div id="canvas" class="document-container">
-    <p id="status">Esperando datos de la app...</p>
-  </div>
-
-  <script>
-    // Escuchar el mensaje enviado desde Glide
-    window.addEventListener("message", (event) => {
-      // Si recibimos HTML, lo insertamos
-      if (event.data && event.data.html) {
-        document.getElementById('canvas').innerHTML = event.data.html;
-        document.getElementById('download-btn').style.display = 'block';
-        
-        // Si viene un fondo, lo aplicamos
-        if (event.data.bg) {
-          document.body.style.backgroundImage = `url('${event.data.bg}')`;
-          document.body.style.backgroundSize = 'cover';
-        }
-      }
-    }, false);
-
-    // Lógica de descarga
-    document.getElementById('download-btn').addEventListener('click', () => {
-      const element = document.getElementById('canvas');
-      html2pdf().set({
-        margin: 10,
-        filename: 'reporte.pdf',
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }).from(element).save();
-    });
-  </script>
+<body onload="load()">
+<div id="content"></div>
 </body>
 </html>
